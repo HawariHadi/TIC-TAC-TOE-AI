@@ -1,0 +1,129 @@
+import random
+
+def print_board(board):
+    for row in board:
+        print(" | ".join(row))
+        print("-" * 9)
+
+def is_game_over(board):
+    for row in board:
+        if row.count(row[0]) == 3 and row[0] != ' ':
+            return True
+    for col in range(3):
+        check = [board[row][col] for row in range(3)]
+        if check.count(check[0]) == 3 and check[0] != ' ':
+            return True
+    if board[0][0] == board[1][1] == board[2][2] != ' ':
+        return True
+    if board[0][2] == board[1][1] == board[2][0] != ' ':
+        return True
+    if all(board[i][j] != ' ' for i in range(3) for j in range(3)):
+        return True
+    return False
+
+def evaluate(board):
+    for row in board:
+        if row.count('X') == 3:
+            return 1
+        if row.count('O') == 3:
+            return -1
+    for col in range(3):
+        check = [board[row][col] for row in range(3)]
+        if check.count('X') == 3:
+            return 1
+        if check.count('O') == 3:
+            return -1
+    if board[0][0] == board[1][1] == board[2][2] == 'X':
+        return 1
+    if board[0][0] == board[1][1] == board[2][2] == 'O':
+        return -1
+    if board[0][2] == board[1][1] == board[2][0] == 'X':
+        return 1
+    if board[0][2] == board[1][1] == board[2][0] == 'O':
+        return -1
+    return 0
+
+def minimax(board, depth, maximizing_player, alpha, beta):
+    if is_game_over(board):
+        return evaluate(board)
+    
+    if maximizing_player:
+        max_eval = float('-inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'X'
+                    eval = minimax(board, depth + 1, False, alpha, beta)
+                    board[i][j] = ' '
+                    max_eval = max(max_eval, eval)
+                    alpha = max(alpha, eval)
+                    if beta <= alpha:
+                        break
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'O'
+                    eval = minimax(board, depth + 1, True, alpha, beta)
+                    board[i][j] = ' '
+                    min_eval = min(min_eval, eval)
+                    beta = min(beta, eval)
+                    if beta <= alpha:
+                        break
+        return min_eval
+
+def find_best_move(board):
+    best_eval = float('-inf')
+    best_move = (-1, -1)
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                board[i][j] = 'X'
+                eval = minimax(board, 0, False, float('-inf'), float('inf'))
+                board[i][j] = ' '
+                if eval > best_eval:
+                    best_eval = eval
+                    best_move = (i, j)
+    return best_move
+
+def play_tic_tac_toe():
+    board = [[' ' for _ in range(3)] for _ in range(3)]  # Corrected line
+    print("Tic-Tac-Toe Game")
+    print_board(board)
+
+    while not is_game_over(board):
+        player_move = None
+        while player_move not in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            try:
+                player_move = int(input("Enter your move (1-9): ") - 1)
+                row, col = divmod(player_move, 3)
+                if board[row][col] == ' ':
+                    board[row][col] = 'O'
+                    break
+                else:
+                    print("Invalid move. That space is already taken.")
+            except (ValueError, IndexError):
+                print("Invalid input. Please enter a number from 1 to 9.")
+
+        print_board(board)
+
+        if is_game_over(board):
+            break
+
+        ai_move = find_best_move(board)
+        board[ai_move[0]][ai_move[1]] = 'X'
+        print("AI's move:")
+        print_board(board)
+
+    result = evaluate(board)
+    if result == 1:
+        print("You lose. AI wins!")
+    elif result == -1:
+        print("You win. AI loses!")
+    else:
+        print("It's a draw!")
+
+if __name__ == "__main__":
+    play_tic_tac_toe()
